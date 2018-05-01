@@ -82,6 +82,7 @@ AFRAME.registerComponent('head-path', {
         // this.el.appendChild(s)
 
         // Replace this with addative geometry/extending the bones on a skeleton???
+        // Also, use quaternion of camera to place tracing object behind your head at all times???
         this.data.path += pos.toArray().join(" ") + ', '
         document.querySelector('#beep').setAttribute('meshline', `lineWidth: 20; path: ${this.data.path}; color: #E20049`)
     }
