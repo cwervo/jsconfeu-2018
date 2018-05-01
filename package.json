@@ -1,0 +1,17 @@
+{
+  "dependencies": {
+    "aframe": "^0.8.2",
+    "aframe-animation-component": "^4.1.2",
+    "aframe-environment-component": "^1.0.0",
+    "aframe-event-set-component": "^4.1.1",
+    "aframe-extras.ocean": "^4.0.0",
+    "aframe-gradient-sky": "^1.0.4",
+    "aframe-meshline-component": "^0.2.1",
+    "aframe-particle-system-component": "^1.0.11",
+    "aframe-physics-extras": "^0.1.2",
+    "aframe-physics-system": "^3.0.2",
+    "aframe-template-component": "^3.2.1",
+    "super-hands": "^2.1.0",
+    "three.meshline": "^1.0.3"
+  }
+}
