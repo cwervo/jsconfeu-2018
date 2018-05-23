@@ -38,6 +38,10 @@ aframe-animation-component@^4.1.2:
   dependencies:
     animejs "2.2.0"
 
+aframe-curve-component@^0.1.3:
+  version "0.1.3"
+  resolved "https://registry.yarnpkg.com/aframe-curve-component/-/aframe-curve-component-0.1.3.tgz#ceea99b40ace2780b3b4b40427c87ab0db1ff0ae"
+
 aframe-environment-component@^1.0.0:
   version "1.0.0"
   resolved "https://registry.yarnpkg.com/aframe-environment-component/-/aframe-environment-component-1.0.0.tgz#dde6a8734dc7777d9c4a00b5bab25f877e8b3b37"

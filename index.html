@@ -12,10 +12,10 @@
 
     <!-- Replace "../build.js" with the super-hands distribution to run locally:
         "" -->
-        <script src="https://cdn.rawgit.com/wmurphyrd/aframe-super-hands-component/master/dist/super-hands.min.js"></script>
+        <!-- <script src="https://cdn.rawgit.com/wmurphyrd/aframe&#45;super&#45;hands&#45;component/master/dist/super&#45;hands.min.js"></script> -->
   </head>
   <body>
-    <a-scene physics="restitution: 0.5" environment="preset: forest; shadow: true" head-path>
+    <a-scene physics="restitution: 0.5" environment="preset: forest; shadow: true">
       <a-assets>
           <a-mixin id="pancake" geometry="primitive: cylinder; radius: 0.2; height: 0.05"
               hoverable grabbable stretchable draggable
@@ -90,6 +90,8 @@
       <a-entity class="transformer" mixin="transformer" position = "-0.8 1.6 -1"
                 material="color: rebeccapurple" shadow></a-entity>
 
+      <a-curve head-path id="knot" generate-knots="scale: 1.5; sample_inc: 0.005" position="0 0 -2"></a-curve>
+      <a-entity clone-along-curve="curve: #knot; spacing: 0.05; scale: 1 1 1; rotation: 0 0 0;" geometry="primitive:box; height:0.06; width:0.06; depth:0.06" material="color: #2EAFAC;"></a-entity>
       <!-- ground collider keeps objets from falling -->
       <a-box id="floor" static-body width=100 height=0.1 depth=100 material="opacity: 0"></a-box>
     </a-scene>
