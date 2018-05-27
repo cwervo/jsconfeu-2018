@@ -25,15 +25,47 @@ require('./displacement-offset-shader.js')
 require('./super-hands-local/super-hands.min.js');
 require('./custom-clone-component');
 
+const TWO_PI = Math.PI * 2
+
 AFRAME.registerComponent('add-stations', {
+    schema: {
+        positionMultiplier: { default : 2.0 },
+        numStations: { default : 6 }
+    },
     init: function () {
         let scene = this.el.sceneEl
-        for (let i = 1; i <= 6; ++i) {
+        let stationHolder = document.createElement('a-entity')
+        this.data.stationHolder = stationHolder
+        stationHolder.setAttribute('position', '0 1.62 -1')
+
+        for (let i = 1; i <= this.data.numStations; ++i) {
             let plane = document.createElement('a-plane')
-            plane.setAttribute('position', `${-4 + i * 1.5} 2 -1`)
+            let {x,y} = plane.getAttribute('position')
+            let angle = TWO_PI * (i / this.data.numStations)
+            x += Math.sin(angle) * this.data.positionMultiplier
+            y +=  Math.cos(angle) * this.data.positionMultiplier
+
+            plane.setAttribute('position', `${x} ${y} -1`)
+            plane.setAttribute('class', 'station')
+
+            // plane.setAttribute('rotation', `0 0 ${i * (360 - 360 / 6)}`)
             plane.setAttribute('material', `src: ./assets/stations/${i}.jpg`)
-            scene.appendChild(plane)
+            stationHolder.appendChild(plane)
         }
+        scene.appendChild(stationHolder)
+        this.data.stations = [...document.querySelectorAll('.station')]
+    },
+    tick: function () {
+        for (let i = 0; i < this.data.numStations; ++i) {
+            let station = this.data.stations[i]
+            let {x,y,z} = AFRAME.utils.coordinates.parse(station.getAttribute('position'))
+            let angle = TWO_PI * (i / this.data.numStations) + (performance.now() * 0.001)
+            x = Math.sin(angle) * this.data.positionMultiplier
+            y = Math.cos(angle) * this.data.positionMultiplier
+            // console.log(`${i}: ${x}, ${y}`)
+            station.setAttribute('position', `${x} ${y} ${z}`)
+        }
+        // this.data.stationHolder.setAttribute('rotation', `0 0 ${performance.now() * 0.1}`)
     }
 })
 //color randomizer

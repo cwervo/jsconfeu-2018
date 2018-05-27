@@ -129,6 +129,8 @@ AFRAME.registerShader('displacement-offset', {
 varying float noise;
 uniform float timeMsec; // A-Frame time in milliseconds.
 uniform vec3 myOffset;
+// From: https://github.com/AndresCuervo/vr-dot-cwervo/blob/dc5772cbba53906f5cf6bdfd005f2b12cdbc74b6/docs/js/fix-train.js
+varying vec4 thisPosition;
 
 float turbulence( vec3 p ) {
 
@@ -152,18 +154,31 @@ void main() {
 
   vec3 newPosition = position + normal * displacement + myOffset;
   gl_Position = projectionMatrix * modelViewMatrix * vec4( newPosition, 1.0 );
+
+  thisPosition = projectionMatrix * modelViewMatrix * vec4( position, 1.0 );
+  gl_Position = thisPosition;
+
 }
 
 `,
   fragmentShader: `
 
 varying float noise;
+varying vec4 thisPosition;
+uniform float timeMsec; // A-Frame time in milliseconds.
 
 void main() {
-
   vec3 color = vec3(1. - 2. * noise);
   gl_FragColor = vec4( color.rgb, 1.0 );
 
+  float time = timeMsec / 1000.0; // Convert from A-Frame milliseconds to typical time in seconds.
+  // cameraPosition is passed from BufferGeometry by default :) --> https://threejs.org/docs/#api/renderers/webgl/WebGLProgram
+   // float d = mod(time * thisPosition.z + thisPosition.x * thisPosition.y, 1.0);
+   // float d = mod(time * 2.0 * thisPosition.z, 5.0);
+   // Seg function:
+   float d = pow(max(0.0, thisPosition.z - sin(time * 2.0)), 4.0);
+   d *= 5.0;
+   gl_FragColor = vec4(0.0, 0.0, d, 1.0);
 }
 
 `
@@ -173,7 +188,6 @@ AFRAME.registerComponent('myoffset-updater', {
   init: function () {
     this.offset = new THREE.Vector3();
   },
-  
   tick: function (t, dt) {
     this.offset.copy(this.el.sceneEl.camera.el.getAttribute('position'));
     this.offset.y = 0;
