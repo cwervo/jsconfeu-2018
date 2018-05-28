@@ -106,8 +106,10 @@
                 rotation="-90 0 0"
                 gltf-model="#mat-model"></a-entity>
 
-      <a-curve head-path id="headCurve" generate-headCurves="scale: 1.5; sample_inc: 0.005" position="0 0 -2"></a-curve>
+      <a-curve head-path id="headCurve" generate-headCurves="scale: 1.5; sample_inc: 0.005"></a-curve>
       <a-entity clone-along-curve-custom="curve: #headCurve; spacing: 0.05; scale: 1 1 1; rotation: 0 0 0;" geometry="primitive:box; height:0.06; width:0.06; depth:0.06" material="shader: displacement-offset;"></a-entity>
+
+      <!-- <a&#45;plane id="log" position="&#45;1.5 1.6 &#45;1" rotation="0 45 0"></a&#45;plane> -->
 
           <!-- <a&#45;draw&#45;curve curveref="#headCurve" material="shader: displacement&#45;offset; color: blue;"></a&#45;draw&#45;curve> -->
       <!-- ground collider keeps objets from falling -->

@@ -29,14 +29,15 @@ const TWO_PI = Math.PI * 2
 
 AFRAME.registerComponent('add-stations', {
     schema: {
-        positionMultiplier: { default : 2.0 },
-        numStations: { default : 6 }
+        positionMultiplier: { default : 1.0 },
+        numStations: { default : 6 },
+        stationSize: { default : 0.4 }
     },
     init: function () {
         let scene = this.el.sceneEl
         let stationHolder = document.createElement('a-entity')
         this.data.stationHolder = stationHolder
-        stationHolder.setAttribute('position', '0 1.62 -1')
+        stationHolder.setAttribute('position', '0 0.8 -0.5')
 
         for (let i = 1; i <= this.data.numStations; ++i) {
             let plane = document.createElement('a-plane')
@@ -46,6 +47,8 @@ AFRAME.registerComponent('add-stations', {
             y +=  Math.cos(angle) * this.data.positionMultiplier
 
             plane.setAttribute('position', `${x} ${y} -1`)
+            plane.setAttribute('width', this.data.stationSize)
+            plane.setAttribute('height', this.data.stationSize)
             plane.setAttribute('class', 'station')
 
             // plane.setAttribute('rotation', `0 0 ${i * (360 - 360 / 6)}`)
@@ -59,7 +62,7 @@ AFRAME.registerComponent('add-stations', {
         for (let i = 0; i < this.data.numStations; ++i) {
             let station = this.data.stations[i]
             let {x,y,z} = AFRAME.utils.coordinates.parse(station.getAttribute('position'))
-            let angle = TWO_PI * (i / this.data.numStations) + (performance.now() * 0.001)
+            let angle = TWO_PI * (i / this.data.numStations) + (performance.now() * -0.0001)
             x = Math.sin(angle) * this.data.positionMultiplier
             y = Math.cos(angle) * this.data.positionMultiplier
             // console.log(`${i}: ${x}, ${y}`)
@@ -142,14 +145,15 @@ AFRAME.registerComponent('head-path', {
     },
     init: function() {
         // every second to every half second
-        this.throttledFunction = AFRAME.utils.throttle(this.everySecond, 500, this);
+        this.throttledFunction = AFRAME.utils.throttle(this.everySecond, 1000, this);
         // this.throttledFunction = AFRAME.utils.throttle(this.everySecond, 5, this);
     },
     everySecond: function (t) {
         let point = document.createElement('a-curve-point')
         let pos = document.querySelector('a-camera').getAttribute('position')
         point.setAttribute('position', pos)
-        point.setAttribute('bioluminescence', `initialTime: ${t}`)
+
+        // point.setAttribute('bioluminescence', `initialTime: ${t}`)
         this.data.curve.appendChild(point)
         this.data.beta += this.data.sample_inc
     },

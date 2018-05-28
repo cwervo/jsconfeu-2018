@@ -176,8 +176,9 @@ void main() {
    // float d = mod(time * thisPosition.z + thisPosition.x * thisPosition.y, 1.0);
    // float d = mod(time * 2.0 * thisPosition.z, 5.0);
    // Seg function:
-   float d = pow(max(0.0, thisPosition.z - sin(time * 2.0)), 4.0);
+   float d = pow(max(0.0, thisPosition.z - sin(time * 3.0)), 4.0);
    d *= 5.0;
+   // gl_FragColor = vec4(0.0, 0.1, d, distance(thisPosition.xyz, cameraPosition.xyz));
    gl_FragColor = vec4(0.0, 0.0, d, 1.0);
 }
 

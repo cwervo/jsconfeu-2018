@@ -7,5 +7,7 @@ serve:
 	parcel index.html
 
 run:
-	make && livereload docs
+	make && livereload -p 1234 docs
 
+run-publicly:
+	lt --port 1234 --subdomain cwervo
