@@ -13,9 +13,9 @@ require('aframe-environment-component')
 // require('aframe-template-component')
 
 // var THREE = require( 'three' );
-MeshLine = require( 'three.meshline' );
-
-require('aframe-meshline-component')
+// MeshLine = require( 'three.meshline' );
+// require('aframe-meshline-component')
+require('./aframe-meshline-component-local/aframe-meshline-component.min.js')
 // require('aframe-curve-component')
 require('./updated-curve-component')
 require('./displacement-offset-shader.js')
@@ -29,15 +29,15 @@ const TWO_PI = Math.PI * 2
 
 AFRAME.registerComponent('add-stations', {
     schema: {
-        positionMultiplier: { default : 1.0 },
+        positionMultiplier: { default : 3.0 },
         numStations: { default : 6 },
-        stationSize: { default : 0.4 }
+        stationSize: { default : 1.5 }
     },
     init: function () {
         let scene = this.el.sceneEl
         let stationHolder = document.createElement('a-entity')
+        stationHolder.setAttribute('position', '0 -2 -2.5')
         this.data.stationHolder = stationHolder
-        stationHolder.setAttribute('position', '0 0.8 -0.5')
 
         for (let i = 1; i <= this.data.numStations; ++i) {
             let plane = document.createElement('a-plane')
@@ -58,11 +58,31 @@ AFRAME.registerComponent('add-stations', {
         scene.appendChild(stationHolder)
         this.data.stations = [...document.querySelectorAll('.station')]
     },
-    tick: function () {
+    tick: function (t, dt) {
+        // 30, 30, 40, 40, 30, 30
+        // 35, 70, 115, 155, 185, 215
+        // console.log(`seconds: ${t/1000}`)
         for (let i = 0; i < this.data.numStations; ++i) {
             let station = this.data.stations[i]
             let {x,y,z} = AFRAME.utils.coordinates.parse(station.getAttribute('position'))
-            let angle = TWO_PI * (i / this.data.numStations) + (performance.now() * -0.0001)
+            // let angle = TWO_PI * (i / this.data.numStations) + (performance.now() * -0.0001)
+            // let angle = TWO_PI * (i / this.data.numStations) + (performance.now() * -0.0001)
+            // const angleMultiplier = (t/1000 * -0.1)
+            let newT = t/1000;
+
+            // Write actual easing function, sketch out the whole thing
+            if (newT < 30) {
+                newT = 1
+            } else if (newT < 35) {
+            } else if (newT > 40 && newT < 70) {
+                newT = 2
+            }
+
+            // easeInOutQuad = function (t) { return t<.5 ? 2*t*t : -1+(4-2*t)*t }
+
+            const angleMultiplier = (Math.floor(newT % 6) / 6) * TWO_PI
+            // const angleMultiplier = ((newT % 6) / 6) * TWO_PI
+            const angle = TWO_PI * (i / this.data.numStations) + angleMultiplier
             x = Math.sin(angle) * this.data.positionMultiplier
             y = Math.cos(angle) * this.data.positionMultiplier
             // console.log(`${i}: ${x}, ${y}`)
@@ -95,72 +115,74 @@ AFRAME.registerComponent('phase-shift', {
     }
 });
 
-// AFRAME.registerComponent('head-path', {
-//     schema : {
-//         path : { value : '-2 1 0, 0 2 0, 2 1 0' }
-//     },
-//     init: function() {
-//         // let geometry = new THREE.Geometry();
-//         // const mult = 100
-//         // for( let j = 0; j < Math.PI; j += 2 * Math.PI / 100 ) {
-//         //     let v = new THREE.Vector3( Math.cos( j ) * mult, Math.sin( j ) * mult, 0 )
-//         //     console.log(v)
-//         //     geometry.vertices.push( v );
-//         // }
-//         // let line = new MeshLine.MeshLine();
-//         // line.setGeometry( geometry );
-//         // line.setGeometry( geometry, function( p ) { return 2; } ); // makes width 2 * lineWidth
-//         // line.setGeometry( geometry, function( p ) { return 1 - p; } ); // makes width taper
-//         // line.setGeometry( geometry, function( p ) { return 2 + Math.sin( 50 * p ); } ); // makes width sinusoidal
-//         //
-//         // var mesh = new THREE.Mesh( line.geometry, new THREE.MeshNormalMaterial({})); // this syntax could definitely be improved!
-//
-//         let newEntity = document.createElement('a-entity')
-//         newEntity.id = "beep"
-//         newEntity.setAttribute('meshline', `lineWidth: 20; path: ${this.data.path}; color: #E20049`)
-//         this.el.appendChild(newEntity)
-//     },
-//     tick: function () {
-//         let pos = document.querySelector('a-camera').getAttribute('position')
-//         // let s = document.createElement('a-sphere')
-//         // s.setAttribute('color', 'red')
-//         // s.setAttribute('radius', '0.05')
-//         // // console.log(pos)
-//         // s.setAttribute('position', pos)
-//         // this.el.appendChild(s)
-//
-//         // Replace this with addative geometry/extending the bones on a skeleton???
-//         // Also, use quaternion of camera to place tracing object behind your head at all times???
-//         this.data.path += pos.toArray().join(" ") + ', '
-//         document.querySelector('#beep').setAttribute('meshline', `lineWidth: 20; path: ${this.data.path}; color: #E20049`)
-//     }
-// });
-
 AFRAME.registerComponent('head-path', {
     schema : {
-        curve: { default: '#headCurve', type: 'selector' },
-        camera: { default: '[camera]', type: 'selector' },
-        sample_inc: { default : 0.01 },
-        scale: { default : 1 }
+        path : { value : '-2 1 0, 0 2 0, 2 1 0' }
     },
     init: function() {
-        // every second to every half second
-        this.throttledFunction = AFRAME.utils.throttle(this.everySecond, 1000, this);
-        // this.throttledFunction = AFRAME.utils.throttle(this.everySecond, 5, this);
+        let newEntity = document.createElement('a-entity')
+        newEntity.id = "beep"
+        newEntity.setAttribute('meshline', `lineWidth: 1 - Math.abs(${performance.now() * 2 % 5} * p - 1); path: ${this.data.path}; color: #E20049`)
+        this.el.appendChild(newEntity)
+        this.throttledFunction = AFRAME.utils.throttle(this.addPoints, 10, this);
     },
-    everySecond: function (t) {
-        let point = document.createElement('a-curve-point')
+    addPoints: function() {
+        // console.log("beep")
         let pos = document.querySelector('a-camera').getAttribute('position')
-        point.setAttribute('position', pos)
 
-        // point.setAttribute('bioluminescence', `initialTime: ${t}`)
-        this.data.curve.appendChild(point)
-        this.data.beta += this.data.sample_inc
+        this.data.path += pos.toArray().join(" ") + ', '
+        let pathArray = this.data.path.split(',')
+        let newString = ''
+        for (let i in pathArray) {
+            // Change z value of pathArray????
+            let {x,y,z} = AFRAME.utils.coordinates.parse(pathArray[i])
+            if (!Number.isNaN(x)) {
+                newString += `${x} ${y} ${z + 0.1},`
+            }
+        }
+        this.data.path = newString
+        pathArray = this.data.path.split(',')
+        // let lineWidth = `1 - Math.abs(${performance.now() * 2 % 5} * p - 1)`
+        let lineWidth = 10
+        document.querySelector('#beep').setAttribute('meshline', `lineWidth: ${lineWidth}; path: ${newString}; color: #E20049`)
     },
     tick: function (t, dt) {
-        this.throttledFunction(t);
+        this.throttledFunction();
     }
 });
+
+// AFRAME.registerComponent('head-path', {
+//     schema : {
+//         curve: { default: '#headCurve', type: 'selector' },
+//         camera: { default: '[camera]', type: 'selector' },
+//         sample_inc: { default : 0.01 },
+//         scale: { default : 1 }
+//     },
+//     init: function() {
+//         // every second to every half second
+//         this.throttledFunction = AFRAME.utils.throttle(this.everySecond, 1000, this);
+//         // this.throttledFunction = AFRAME.utils.throttle(this.everySecond, 5, this);
+//     },
+//     everySecond: function (t) {
+//         let point = document.createElement('a-curve-point')
+//         let pos = document.querySelector('a-camera').getAttribute('position')
+//         point.setAttribute('position', pos)
+//
+//         point.setAttribute('geometry', 'primitive:box; height:0.06; width:0.06; depth:0.06')
+//         point.setAttribute('material', 'shader: displacement-offset;')
+//
+//         // for (let v in document.querySelector('a-draw-curve').object3DMap.mesh.geometry.vertices) {
+//         //     // console.log(v)
+//         // }
+//
+//         // point.setAttribute('bioluminescence', `initialTime: ${t}`)
+//         this.data.curve.appendChild(point)
+//         this.data.beta += this.data.sample_inc
+//     },
+//     tick: function (t, dt) {
+//         this.throttledFunction(t);
+//     }
+// });
 
 AFRAME.registerComponent('bioluminescence', {
     schema: {
