@@ -135,25 +135,8 @@ AFRAME.registerComponent('head-path', {
         pos = new THREE.Vector3( pos.x, pos.y, pos.z )
 
         let quat = document.querySelector('[camera]').object3D.children[0].getWorldQuaternion()
-        var direction = new THREE.Vector3( 0, 1, 0 ).applyQuaternion(quat); // this works, but why the Y-component???
-        // var direction = new THREE.Vector3( 0, 1, 5 ).applyQuaternion(quat); // Strange, but interesting!
-        direction = pos.multiply(direction)
-        pos.applyQuaternion(quat)
-
-        // console.log('quat', quat)
-        console.log('direction', direction)
-        console.log('direction.z * 5: ', direction.z * 5)
-        direction.multiplyScalar(5)
-        direction.y -= 5
-        // console.log('pos', pos)
-        console.log('-------')
-        // console.log(direction.multiply(pos))
-        // direction.y += 5
-        // console.log(pos.applyQuaternion())
-
-        // document.querySelector('[camera]').object3D.children[0].getWorldQuaternion()
-        // this.data.path += ', ' + pos.toArray().join(" ")
-        console.log("direction array", direction.toArray())
+        var direction = new THREE.Vector3( 0, 0, -10 ).applyQuaternion(quat); // this works, but why the Y-component???
+        direction = pos.add(direction)
         this.data.path += ', ' + direction.toArray().join(" ")
         document.querySelector('#beep').setAttribute('meshline', `lineWidth: 10; path: ${this.data.path}; color: #E20049`)
 
