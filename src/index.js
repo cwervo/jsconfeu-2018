@@ -107,7 +107,7 @@ AFRAME.registerComponent('head-path', {
         newEntity.setAttribute('meshline', `lineWidth: ${this.data.linewidth}; path: ${this.data.path}; color: #E20049`)
         console.log("ADDED ----")
         this.el.appendChild(newEntity)
-        this.throttledFunction = AFRAME.utils.throttle(this.addPoints, 50, this);
+        this.throttledFunction = AFRAME.utils.throttle(this.addPoints, 100, this);
     },
     zVector: {
         beep: new THREE.Vector3( 0, 1, 0 )
