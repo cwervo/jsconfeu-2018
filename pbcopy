@@ -1,0 +1,2 @@
+lsof -i :1234 | rg Python | awk -F  '{print }' | uniq | xargs kill -9
+lsof -i :1234 | rg Python | awk -F  '{print }' | uniq | xargs kill -9

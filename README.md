@@ -1,5 +1,8 @@
 # "Pore" - An Art Installation
 
+
+Note: `aframe-meshline-component-local` is the compiled version [this custom meshline component](https://github.com/AndresCuervo/cwervo-custom-aframe-meshline-component), with an overhauled `yarn dist` command
+
 A WebVR art installation for JSConf EU 2018.
 
 ---

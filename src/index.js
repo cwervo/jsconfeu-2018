@@ -1,29 +1,9 @@
 require('aframe')
-//
-// require('aframe-animation-component')
-// // require('aframe-extras.ocean')
-// require('aframe-gradient-sky')
-// require('aframe-particle-system-component')
-//
-// require('aframe-gradient-sky')
-require('aframe-physics-system')
-require('aframe-event-set-component')
-require('aframe-physics-extras')
-require('aframe-environment-component')
-// require('aframe-template-component')
-
-// var THREE = require( 'three' );
-MeshLine = require( 'three.meshline' );
-require('aframe-meshline-component')
-// require('./aframe-meshline-component-local/aframe-meshline-component.min.js')
+require('./aframe-meshline-component-local/aframe-meshline-component.min.js')
 require('aframe-curve-component')
-require('./updated-curve-component')
-require('./displacement-offset-shader.js')
-
 // TODO: When next version of super-hands gets published this can be updated
 // (as of today, April 6, 2018, the npm version is 5 months out of date, so I'm using a script to the git version)
 require('./super-hands-local/super-hands.min.js');
-require('./custom-clone-component');
 
 const TWO_PI = Math.PI * 2
 
@@ -117,14 +97,16 @@ AFRAME.registerComponent('phase-shift', {
 
 AFRAME.registerComponent('head-path', {
     schema : {
-        path : { value : '-2 1 0, 0 2 0, 2 1 0' }
+        path : { value : '-2 1 0, 0 2 0, 2 1 0' },
+        linewidth: { value : 15 }
     },
     init: function() {
         let newEntity = document.createElement('a-entity')
         newEntity.id = "beep"
-        newEntity.setAttribute('meshline', `lineWidth: 10; path: ${this.data.path}; color: #E20049`)
+        newEntity.setAttribute('meshline', `lineWidth: ${this.data.linewidth}; path: ${this.data.path}; color: #E20049`)
+        console.log("ADDED ----")
         this.el.appendChild(newEntity)
-        this.throttledFunction = AFRAME.utils.throttle(this.addPoints, 100, this);
+        this.throttledFunction = AFRAME.utils.throttle(this.addPoints, 50, this);
     },
     zVector: {
         beep: new THREE.Vector3( 0, 1, 0 )
@@ -138,7 +120,7 @@ AFRAME.registerComponent('head-path', {
         var direction = new THREE.Vector3( 0, 0, -10 ).applyQuaternion(quat); // this works, but why the Y-component???
         direction = pos.add(direction)
         this.data.path += ', ' + direction.toArray().join(" ")
-        document.querySelector('#beep').setAttribute('meshline', `lineWidth: 10; path: ${this.data.path}; color: #E20049`)
+        document.querySelector('#beep').setAttribute('meshline', `lineWidth: ${this.data.linewidth}; path: ${this.data.path}; color: #E20049`)
 
         // let pathArray = this.data.path.split(',')
         // let newString = ''
@@ -210,3 +192,33 @@ AFRAME.registerComponent('bioluminescence', {
         // this.el.setAttribute('scale', `${s} ${s} ${s}`)
     }
 });
+
+// From: https://gist.github.com/Strae/8b62ee637699b4218b53b3f158351864
+AFRAME.registerComponent('model-opacity', {
+  schema: {default: 1.0},
+  init: function () {
+    this.el.addEventListener('model-loaded', this.update.bind(this));
+  },
+  update: function () {
+    var mesh = this.el.getObject3D('mesh');
+    var data = this.data;
+    if (!mesh) { return; }
+    mesh.traverse(function (node) {
+      if (node.isMesh) {
+        node.material.opacity = data;
+        node.material.transparent = data < 1.0;
+        node.material.needsUpdate = true;
+      }
+    });
+  }
+});
+
+AFRAME.registerComponent('fade-out', {
+    init: function () {
+        // console.log('FADDDDingggg', this.el)
+        this.el.setAttribute('model-opacity', 0)
+    },
+    tick: function () {
+        // this.el.setAttribute('model-opacity', Math.sin(performance.now() * 0.001))
+    }
+})
