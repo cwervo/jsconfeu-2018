@@ -96,16 +96,27 @@ AFRAME.registerComponent('phase-shift', {
     }
 });
 
+function makeNewMeshline(i, linewidth, path) {
+    let newEntity = document.createElement('a-entity')
+    // newEntity.id = "beep"
+    newEntity.id = `beep${i}`
+    newEntity.setAttribute('meshline', `lineWidth: ${linewidth}; path: ${path}; color: #E20049`)
+    return newEntity
+}
+
 AFRAME.registerComponent('head-path', {
     schema : {
-        path : { value : '-2 1 0, 0 2 0, 2 1 0' },
-        linewidth: { value : 15 }
+        path : { default : '' },
+        linewidth: { default : 15 },
+        maxPoints: { default : 300 }
     },
+    meshlines: [],
+    meshlineIndex: 0,
+    totalPoints: 0,
     init: function() {
-        let newEntity = document.createElement('a-entity')
-        newEntity.id = "beep"
-        newEntity.setAttribute('meshline', `lineWidth: ${this.data.linewidth}; path: ${this.data.path}; color: #E20049`)
+        let newEntity = makeNewMeshline(0, this.data.linewidth, this.data.path)
         console.log("ADDED ----")
+        this.meshlines.push(newEntity)
         this.el.appendChild(newEntity)
         this.throttledFunction = AFRAME.utils.throttle(this.addPoints, 100, this);
     },
@@ -113,15 +124,37 @@ AFRAME.registerComponent('head-path', {
         beep: new THREE.Vector3( 0, 1, 0 )
     },
     addPoints: function() {
-        // console.log("beep")
+        // TODO: To solve the n^2 points problem, if we're above X number of points, make a new object, put it in a list, and update that object
         let pos = document.querySelector('a-camera').getAttribute('position')
         pos = new THREE.Vector3( pos.x, pos.y, pos.z )
+        this.totalPoints++
 
         let quat = document.querySelector('[camera]').object3D.children[0].getWorldQuaternion()
         var direction = new THREE.Vector3( 0, 0, -10 ).applyQuaternion(quat); // this works, but why the Y-component???
         direction = pos.add(direction)
         this.data.path += ', ' + direction.toArray().join(" ")
-        document.querySelector('#beep').setAttribute('meshline', `lineWidth: ${this.data.linewidth}; path: ${this.data.path}; color: #E20049`)
+
+        let pathArray = this.data.path.split(',')
+
+        // 100 * 60 = 600
+        // if (pathArray.length > 600) {
+        //     pathArray.shift() // take first off the front
+        //     // console.log("path",pathArray, )
+        //     this.data.path = pathArray.join(", ")
+        // }
+
+
+        if (this.totalPoints % this.data.maxPoints == 0) {
+            let newEntity = makeNewMeshline(this.totalPoints / this.data.maxPoints, this.data.linewidth, this.data.path)
+            console.log("ADDED ----")
+            this.meshlines.push(newEntity)
+            this.el.appendChild(newEntity)
+        }
+
+        let currentIndex = Math.floor(this.totalPoints / this.data.maxPoints)
+        console.log("uhhhh: ", this.totalPoints, " | currentIndex: ", currentIndex)
+
+        this.meshlines[currentIndex].setAttribute('meshline', `lineWidth: ${this.data.linewidth}; path: ${this.data.path}; color: #E20049`)
 
         // let pathArray = this.data.path.split(',')
         // let newString = ''
@@ -138,7 +171,6 @@ AFRAME.registerComponent('head-path', {
         // let lineWidth = `1 - Math.abs(${performance.now() * 2 % 5} * p - 1)`
         // let lineWidth = 10
         // document.querySelector('#beep').setAttribute('meshline', `lineWidth: 10; path: ${newString}; color: #E20049`)
-        document.querySelector('#beep').setAttribute('meshline', `lineWidth: 10; path: ${this.data.path}; color: #E20049`)
     },
     tick: function (t, dt) {
         this.throttledFunction();
