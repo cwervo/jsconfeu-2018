@@ -30,6 +30,7 @@ AFRAME.registerComponent('add-stations', {
             plane.setAttribute('width', this.data.stationSize)
             plane.setAttribute('height', this.data.stationSize)
             plane.setAttribute('class', 'station')
+            plane.setAttribute('fade-out', '')
 
             // plane.setAttribute('rotation', `0 0 ${i * (360 - 360 / 6)}`)
             plane.setAttribute('material', `src: ./assets/stations/${i}.jpg`)
@@ -214,11 +215,32 @@ AFRAME.registerComponent('model-opacity', {
 });
 
 AFRAME.registerComponent('fade-out', {
+    schema: {
+        totalDelay: { default : 180 },
+        numberFadeSeconds: { default : 20 },
+        isModel: { default : false },
+        isSky: { default : false }
+    },
     init: function () {
         // console.log('FADDDDingggg', this.el)
-        this.el.setAttribute('model-opacity', 0)
+        // this.el.setAttribute('model-opacity', 0)
     },
-    tick: function () {
-        // this.el.setAttribute('model-opacity', Math.sin(performance.now() * 0.001))
+    easeInOutQuad: function (t) {
+        return t<.5 ? 2*t*t : -1+(4-2*t)*t;
+    },
+    tick: function (t) {
+        t /= 1000
+        if (t > this.data.totalDelay && t < (this.data.totalDelay + this.data.numberFadeSeconds)) {
+            // console.log(`t: ${t}`)
+
+            let animValue = this.easeInOutQuad(t / this.data.numberFadeSeconds)
+            if (this.data.isModel) {
+                this.el.setAttribute('model-opacity', animValue)
+            } else if (this.data.isSky) {
+                this.el.object3D.children[0].material.color = {r:  animValue, g:  animValue, b:  animValue}
+            } else {
+                this.el.setAttribute('material', 'opacity', animValue)
+            }
+        }
     }
 })

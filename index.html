@@ -58,7 +58,7 @@
         <a-asset-item id="tube"src="./assets/tube/tube.glb"></a-asset-item>
       </a-assets>
 
-      <a-sky color="white"></a-sky>
+      <a-sky color="white" fade-out="isSky: true;"></a-sky>
 
       <a-entity progressive-controls="gazeMixin: mycursor; touchMixin: mytouch; override: true">
         <!-- listing controller entities to set IDs for MoCap replay optional for normal use -->
@@ -106,14 +106,14 @@
                 position="0 0.2 0.5"
                 rotation="-90 0 0"
                 gltf-model="#mat-model"
-                fade-out></a-entity>
+                fade-out="isModel: true;"></a-entity>
 
-            <a-entity id="tube"
+            <a-entity id="tube-entity"
                 scale="2 2 2"
                 position="0 0 1.266696632423146"
                 rotation="0 92.92636255878809 0"
                 gltf-model="#tube"
-                fade-out></a-entity>
+                fade-out="isModel: true;"></a-entity>
 
       <a-curve head-path id="headCurve"></a-curve>
 
