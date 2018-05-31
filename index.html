@@ -107,19 +107,22 @@
                 rotation="-90 0 0"
                 gltf-model="#mat-model"></a-entity>
 
-            <a-entity id="tube"
-                scale="2 2 2"
-                position="0 0 1.266696632423146"
-                rotation="0 92.92636255878809 0"
-                gltf-model="#tube"></a-entity>
+            <!-- <a&#45;entity id="tube" -->
+            <!--     scale="2 2 2" -->
+            <!--     position="0 0 1.266696632423146" -->
+            <!--     rotation="0 92.92636255878809 0" -->
+            <!--     gltf&#45;model="#tube"></a&#45;entity> -->
 
       <a-curve head-path id="headCurve" generate-headCurves="scale: 1.5; sample_inc: 0.005"></a-curve>
       <a-draw-curve curveref="#headCurve" material="shader: displacement-offset;"></a-draw-curve>
 
-      <!-- <a&#45;entity clone&#45;along&#45;curve&#45;custom="curve: #headCurve; spacing: 0.05; scale: 1 1 1; rotation: 0 0 0;" geometry="primitive:box; height:0.06; width:0.06; depth:0.06" material="shader: displacement&#45;offset;"></a&#45;entity> -->
+      <!-- <a&#45;entity clone&#45;along&#45;curve&#45;custom="curve: #headCurve; spacing: 0.05; scale: 1 1 1; rotation: 0 0 0;" geometry="primitive: cylinder; height:0.06; width:0.06; depth:0.06" material="shader: displacement&#45;offset;"></a&#45;entity> -->
+
+      <!-- <a&#45;entity clone&#45;along&#45;curve&#45;custom="curve: #headCurve; spacing: 0.05; scale: 1 1 1; rotation: 0 0 0;" geometry="primitive: cylinder; height:0.06; width:0.06; depth:0.06" material="shader: displacement&#45;offset;"></a&#45;entity> -->
 
       <!-- <a&#45;plane id="log" position="&#45;1.5 1.6 &#45;1" rotation="0 45 0"></a&#45;plane> -->
 
+          <!-- <a&#45;draw&#45;curve curveref="#headCurve" material="shader: displacement&#45;offset; color: blue;"></a&#45;draw&#45;curve> -->
           <!-- <a&#45;draw&#45;curve curveref="#headCurve" material="shader: displacement&#45;offset; color: blue;"></a&#45;draw&#45;curve> -->
       <!-- ground collider keeps objets from falling -->
       <a-box id="floor" static-body width=100 height=0.1 depth=100 material="opacity: 0"></a-box>

@@ -13,10 +13,10 @@ require('aframe-environment-component')
 // require('aframe-template-component')
 
 // var THREE = require( 'three' );
-// MeshLine = require( 'three.meshline' );
-// require('aframe-meshline-component')
-require('./aframe-meshline-component-local/aframe-meshline-component.min.js')
-// require('aframe-curve-component')
+MeshLine = require( 'three.meshline' );
+require('aframe-meshline-component')
+// require('./aframe-meshline-component-local/aframe-meshline-component.min.js')
+require('aframe-curve-component')
 require('./updated-curve-component')
 require('./displacement-offset-shader.js')
 
@@ -122,29 +122,57 @@ AFRAME.registerComponent('head-path', {
     init: function() {
         let newEntity = document.createElement('a-entity')
         newEntity.id = "beep"
-        newEntity.setAttribute('meshline', `lineWidth: 1 - Math.abs(${performance.now() * 2 % 5} * p - 1); path: ${this.data.path}; color: #E20049`)
+        newEntity.setAttribute('meshline', `lineWidth: 10; path: ${this.data.path}; color: #E20049`)
         this.el.appendChild(newEntity)
         this.throttledFunction = AFRAME.utils.throttle(this.addPoints, 10, this);
+    },
+    zVector: {
+        beep: new THREE.Vector3( 0, 1, 0 )
     },
     addPoints: function() {
         // console.log("beep")
         let pos = document.querySelector('a-camera').getAttribute('position')
+        pos = new THREE.Vector3( pos.x, pos.y, pos.z )
 
-        this.data.path += pos.toArray().join(" ") + ', '
-        let pathArray = this.data.path.split(',')
-        let newString = ''
-        for (let i in pathArray) {
-            // Change z value of pathArray????
-            let {x,y,z} = AFRAME.utils.coordinates.parse(pathArray[i])
-            if (!Number.isNaN(x)) {
-                newString += `${x} ${y} ${z + 0.1},`
-            }
-        }
-        this.data.path = newString
-        pathArray = this.data.path.split(',')
+        let quat = document.querySelector('[camera]').object3D.children[0].getWorldQuaternion()
+        var direction = new THREE.Vector3( 0, 1, 0 ).applyQuaternion(quat); // this works, but why the Y-component???
+        // var direction = new THREE.Vector3( 0, 1, 5 ).applyQuaternion(quat); // Strange, but interesting!
+        direction = pos.multiply(direction)
+        pos.applyQuaternion(quat)
+
+        // console.log('quat', quat)
+        console.log('direction', direction)
+        console.log('direction.z * 5: ', direction.z * 5)
+        direction.multiplyScalar(5)
+        direction.y -= 5
+        // console.log('pos', pos)
+        console.log('-------')
+        // console.log(direction.multiply(pos))
+        // direction.y += 5
+        // console.log(pos.applyQuaternion())
+
+        // document.querySelector('[camera]').object3D.children[0].getWorldQuaternion()
+        // this.data.path += ', ' + pos.toArray().join(" ")
+        console.log("direction array", direction.toArray())
+        this.data.path += ', ' + direction.toArray().join(" ")
+        document.querySelector('#beep').setAttribute('meshline', `lineWidth: 10; path: ${this.data.path}; color: #E20049`)
+
+        // let pathArray = this.data.path.split(',')
+        // let newString = ''
+        // for (let i in pathArray) {
+        //     // Change z value of pathArray????
+        //     let {x,y,z} = AFRAME.utils.coordinates.parse(pathArray[i])
+        //     if (!Number.isNaN(x)) {
+        //         newString += `${x} ${y} ${z + 0.1},`
+        //         // newString += `${x} ${y} ${z},`
+        //     }
+        // }
+        // this.data.path = newString
+        // pathArray = this.data.path.split(',')
         // let lineWidth = `1 - Math.abs(${performance.now() * 2 % 5} * p - 1)`
-        let lineWidth = 10
-        document.querySelector('#beep').setAttribute('meshline', `lineWidth: ${lineWidth}; path: ${newString}; color: #E20049`)
+        // let lineWidth = 10
+        // document.querySelector('#beep').setAttribute('meshline', `lineWidth: 10; path: ${newString}; color: #E20049`)
+        document.querySelector('#beep').setAttribute('meshline', `lineWidth: 10; path: ${this.data.path}; color: #E20049`)
     },
     tick: function (t, dt) {
         this.throttledFunction();
@@ -168,9 +196,8 @@ AFRAME.registerComponent('head-path', {
 //         let pos = document.querySelector('a-camera').getAttribute('position')
 //         point.setAttribute('position', pos)
 //
-//         point.setAttribute('geometry', 'primitive:box; height:0.06; width:0.06; depth:0.06')
-//         point.setAttribute('material', 'shader: displacement-offset;')
-//
+//         // point.setAttribute('geometry', 'primitive:box; height:0.06; width:0.06; depth:0.06')
+//         // point.setAttribute('material', 'shader: displacement-offset;')
 //         // for (let v in document.querySelector('a-draw-curve').object3DMap.mesh.geometry.vertices) {
 //         //     // console.log(v)
 //         // }
