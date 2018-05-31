@@ -108,7 +108,7 @@ AFRAME.registerComponent('head-path', {
     schema : {
         path : { default : '' },
         linewidth: { default : 15 },
-        maxPoints: { default : 300 }
+        maxPoints: { default : 3 }
     },
     meshlines: [],
     meshlineIndex: 0,
@@ -116,7 +116,10 @@ AFRAME.registerComponent('head-path', {
     init: function() {
         let newEntity = makeNewMeshline(0, this.data.linewidth, this.data.path)
         console.log("ADDED ----")
-        this.meshlines.push(newEntity)
+        this.meshlines.push({
+            element: newEntity,
+            path: ''
+        })
         this.el.appendChild(newEntity)
         this.throttledFunction = AFRAME.utils.throttle(this.addPoints, 100, this);
     },
@@ -127,34 +130,48 @@ AFRAME.registerComponent('head-path', {
         // TODO: To solve the n^2 points problem, if we're above X number of points, make a new object, put it in a list, and update that object
         let pos = document.querySelector('a-camera').getAttribute('position')
         pos = new THREE.Vector3( pos.x, pos.y, pos.z )
-        this.totalPoints++
+
+        const currentMeshline = this.meshlines[this.meshlineIndex]
+
+        // let pathArray = currentMeshline.path.split(',')
+        let pathArray = currentMeshline.path.split(',')
+        let lastPosition = pathArray[pathArray.length]
+        // console.log(lastPosition)
+        // console.log(pos)
+        // if (this.totalPoints !== 0 && pos.distanceToSquared(lastPosition) < 0.3) {
+        //     return;
+        // }
 
         let quat = document.querySelector('[camera]').object3D.children[0].getWorldQuaternion()
         var direction = new THREE.Vector3( 0, 0, -10 ).applyQuaternion(quat); // this works, but why the Y-component???
         direction = pos.add(direction)
-        this.data.path += ', ' + direction.toArray().join(" ")
-
-        let pathArray = this.data.path.split(',')
-
-        // 100 * 60 = 600
-        // if (pathArray.length > 600) {
-        //     pathArray.shift() // take first off the front
-        //     // console.log("path",pathArray, )
-        //     this.data.path = pathArray.join(", ")
-        // }
-
-
-        if (this.totalPoints % this.data.maxPoints == 0) {
-            let newEntity = makeNewMeshline(this.totalPoints / this.data.maxPoints, this.data.linewidth, this.data.path)
-            console.log("ADDED ----")
-            this.meshlines.push(newEntity)
-            this.el.appendChild(newEntity)
+        if (currentMeshline.path !== '') {
+            currentMeshline.path += ', ' + direction.toArray().join(" ")
         }
+        currentMeshline.path += direction.toArray().join(" ")
 
-        let currentIndex = Math.floor(this.totalPoints / this.data.maxPoints)
-        console.log("uhhhh: ", this.totalPoints, " | currentIndex: ", currentIndex)
+        currentMeshline.element.setAttribute('meshline', `lineWidth: ${this.data.linewidth}; path: ${currentMeshline.path}; color: #E20049`)
 
-        this.meshlines[currentIndex].setAttribute('meshline', `lineWidth: ${this.data.linewidth}; path: ${this.data.path}; color: #E20049`)
+        if (this.totalPoints > this.data.maxPoints) {
+            let lastMeshline = this.meshlines[this.meshlineIndex - 1]
+            if (lastMeshline === undefined) {
+                lastMeshline = {element: '', path: ''}
+            } else {
+                console.log("last path? :", lastMeshline.path)
+                console.log("last one? :", lastMeshline.path.split(',').pop())
+            }
+
+            // let newEntity = makeNewMeshline(this.meshlineIndex + 1, this.data.linewidth, lastMeshlineArray[lastMeshlineArray.length - 1])
+            let newEntity = makeNewMeshline(this.meshlineIndex + 1, this.data.linewidth, lastMeshline.path.split(',').pop())
+            console.log("ADDED ----")
+            this.meshlines.push({
+                element: newEntity,
+                path: ''
+            })
+            this.el.appendChild(newEntity)
+            this.totalPoints = 0
+            this.meshlineIndex++
+        }
 
         // let pathArray = this.data.path.split(',')
         // let newString = ''
@@ -171,6 +188,8 @@ AFRAME.registerComponent('head-path', {
         // let lineWidth = `1 - Math.abs(${performance.now() * 2 % 5} * p - 1)`
         // let lineWidth = 10
         // document.querySelector('#beep').setAttribute('meshline', `lineWidth: 10; path: ${newString}; color: #E20049`)
+
+        this.totalPoints++
     },
     tick: function (t, dt) {
         this.throttledFunction();
