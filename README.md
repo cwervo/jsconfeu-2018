@@ -1,4 +1,4 @@
-# All In Your Head - An Art Installation
+# "Pore" - An Art Installation
 
 A WebVR art installation for JSConf EU 2018.
 
