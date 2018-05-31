@@ -108,7 +108,7 @@ AFRAME.registerComponent('head-path', {
     schema : {
         path : { default : '' },
         linewidth: { default : 15 },
-        maxPoints: { default : 3 }
+        maxPoints: { default : 30 }
     },
     meshlines: [],
     meshlineIndex: 0,
@@ -152,13 +152,14 @@ AFRAME.registerComponent('head-path', {
 
         currentMeshline.element.setAttribute('meshline', `lineWidth: ${this.data.linewidth}; path: ${currentMeshline.path}; color: #E20049`)
 
+        console.log('t', this.totalPoints)
         if (this.totalPoints > this.data.maxPoints) {
             let lastMeshline = this.meshlines[this.meshlineIndex - 1]
-            if (lastMeshline === undefined) {
+            if (!lastMeshline) {
                 lastMeshline = {element: '', path: ''}
             } else {
                 console.log("last path? :", lastMeshline.path)
-                console.log("last one? :", lastMeshline.path.split(',').pop())
+                console.log("last one? :", lastMeshline.path.split(','))
             }
 
             // let newEntity = makeNewMeshline(this.meshlineIndex + 1, this.data.linewidth, lastMeshlineArray[lastMeshlineArray.length - 1])
