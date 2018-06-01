@@ -26,13 +26,13 @@ AFRAME.registerComponent('add-stations', {
             x += Math.sin(angle) * this.data.positionMultiplier
             y +=  Math.cos(angle) * this.data.positionMultiplier
 
-            plane.setAttribute('position', `${x} ${y} -1`)
+            plane.setAttribute('position', `${x} ${y} -0.5`)
             plane.setAttribute('width', this.data.stationSize)
             plane.setAttribute('height', this.data.stationSize)
             plane.setAttribute('class', 'station')
             plane.setAttribute('fade-out', '')
 
-            // plane.setAttribute('rotation', `0 0 ${i * (360 - 360 / 6)}`)
+            plane.setAttribute('rotation', `0 0 ${i * (360 - 360 / 6)}`)
             plane.setAttribute('material', `src: ./assets/stations/${i}.jpg`)
             stationHolder.appendChild(plane)
         }
@@ -42,34 +42,36 @@ AFRAME.registerComponent('add-stations', {
     tick: function (t, dt) {
         // 30, 30, 40, 40, 30, 30
         // 35, 70, 115, 155, 185, 215
+
         // console.log(`seconds: ${t/1000}`)
-        for (let i = 0; i < this.data.numStations; ++i) {
-            let station = this.data.stations[i]
-            let {x,y,z} = AFRAME.utils.coordinates.parse(station.getAttribute('position'))
-            // let angle = TWO_PI * (i / this.data.numStations) + (performance.now() * -0.0001)
-            // let angle = TWO_PI * (i / this.data.numStations) + (performance.now() * -0.0001)
-            // const angleMultiplier = (t/1000 * -0.1)
-            let newT = t/1000;
-
-            // Write actual easing function, sketch out the whole thing
-            if (newT < 30) {
-                newT = 1
-            } else if (newT < 35) {
-            } else if (newT > 40 && newT < 70) {
-                newT = 2
-            }
-
-            // easeInOutQuad = function (t) { return t<.5 ? 2*t*t : -1+(4-2*t)*t }
-
-            const angleMultiplier = (Math.floor(newT % 6) / 6) * TWO_PI
-            // const angleMultiplier = ((newT % 6) / 6) * TWO_PI
-            const angle = TWO_PI * (i / this.data.numStations) + angleMultiplier
-            x = Math.sin(angle) * this.data.positionMultiplier
-            y = Math.cos(angle) * this.data.positionMultiplier
-            // console.log(`${i}: ${x}, ${y}`)
-            station.setAttribute('position', `${x} ${y} ${z}`)
-        }
-        // this.data.stationHolder.setAttribute('rotation', `0 0 ${performance.now() * 0.1}`)
+        // for (let i = 0; i < this.data.numStations; ++i) {
+        //     let station = this.data.stations[i]
+        //     let {x,y,z} = AFRAME.utils.coordinates.parse(station.getAttribute('position'))
+        //     // let angle = TWO_PI * (i / this.data.numStations) + (performance.now() * -0.0001)
+        //     // let angle = TWO_PI * (i / this.data.numStations) + (performance.now() * -0.0001)
+        //     // const angleMultiplier = (t/1000 * -0.1)
+        //     let newT = t/1000;
+        //
+        //     // Write actual easing function, sketch out the whole thing
+        //     if (newT < 30) {
+        //         newT = 1
+        //     } else if (newT < 35) {
+        //     } else if (newT > 40 && newT < 70) {
+        //         newT = 2
+        //     }
+        //
+        //     // easeInOutQuad = function (t) { return t<.5 ? 2*t*t : -1+(4-2*t)*t }
+        //
+        //     // const angleMultiplier = (Math.floor(newT % 6) / 6) * TWO_PI
+        //     const angleMultiplier = (Math.floor(t * 0.00001 % 6) / 6) * TWO_PI
+        //     // const angleMultiplier = ((newT % 6) / 6) * TWO_PI
+        //     const angle = TWO_PI * (i / this.data.numStations) + angleMultiplier
+        //     x = Math.sin(angle) * this.data.positionMultiplier
+        //     y = Math.cos(angle) * this.data.positionMultiplier
+        //     // console.log(`${i}: ${x}, ${y}`)
+        //     station.setAttribute('position', `${x} ${y} ${z}`)
+        // }
+        this.data.stationHolder.setAttribute('rotation', `0 0 ${performance.now() * 0.01}`)
     }
 })
 //color randomizer
@@ -108,7 +110,7 @@ AFRAME.registerComponent('head-path', {
     schema : {
         path : { default : '' },
         linewidth: { default : 15 },
-        maxPoints: { default : 30 }
+        maxPoints: { default : 300 }
     },
     meshlines: [],
     meshlineIndex: 0,
@@ -133,20 +135,11 @@ AFRAME.registerComponent('head-path', {
 
         const currentMeshline = this.meshlines[this.meshlineIndex]
 
-        // let pathArray = currentMeshline.path.split(',')
-        let pathArray = currentMeshline.path.split(',')
-        let lastPosition = pathArray[pathArray.length]
-        // console.log(lastPosition)
-        // console.log(pos)
-        // if (this.totalPoints !== 0 && pos.distanceToSquared(lastPosition) < 0.3) {
-        //     return;
-        // }
-
         let quat = document.querySelector('[camera]').object3D.children[0].getWorldQuaternion()
         var direction = new THREE.Vector3( 0, 0, -10 ).applyQuaternion(quat); // this works, but why the Y-component???
         direction = pos.add(direction)
         if (currentMeshline.path !== '') {
-            currentMeshline.path += ', ' + direction.toArray().join(" ")
+            currentMeshline.path += ', '
         }
         currentMeshline.path += direction.toArray().join(" ")
 
@@ -157,39 +150,31 @@ AFRAME.registerComponent('head-path', {
             let lastMeshline = this.meshlines[this.meshlineIndex - 1]
             if (!lastMeshline) {
                 lastMeshline = {element: '', path: ''}
-            } else {
-                console.log("last path? :", lastMeshline.path)
-                console.log("last one? :", lastMeshline.path.split(','))
             }
 
+            console.log("last path? :", lastMeshline.path.split(','))
+            console.log("last one? :", lastMeshline.path.split(',')[lastMeshline.path.split(',').length - 1])
+
             // let newEntity = makeNewMeshline(this.meshlineIndex + 1, this.data.linewidth, lastMeshlineArray[lastMeshlineArray.length - 1])
-            let newEntity = makeNewMeshline(this.meshlineIndex + 1, this.data.linewidth, lastMeshline.path.split(',').pop())
-            console.log("ADDED ----")
+            const lastIndex = lastMeshline.path.length === 0 ? 0 : lastMeshline.path.length - 1
+            let lastElement = lastMeshline.path.split(',')[lastMeshline.path.split(',').length - 1]
+            console.log("lastElement ", lastElement)
+            if (!lastElement && this.meshlineIndex === 0) {
+                lastElement = ''
+            } else {
+                console.log(" UHHHHH")
+            }
+
+            let newEntity = makeNewMeshline(this.meshlineIndex + 1, this.data.linewidth, lastElement)
+            console.log("ADDED ---- lastElement:", lastElement)
             this.meshlines.push({
                 element: newEntity,
-                path: ''
+                path: lastElement
             })
             this.el.appendChild(newEntity)
             this.totalPoints = 0
             this.meshlineIndex++
         }
-
-        // let pathArray = this.data.path.split(',')
-        // let newString = ''
-        // for (let i in pathArray) {
-        //     // Change z value of pathArray????
-        //     let {x,y,z} = AFRAME.utils.coordinates.parse(pathArray[i])
-        //     if (!Number.isNaN(x)) {
-        //         newString += `${x} ${y} ${z + 0.1},`
-        //         // newString += `${x} ${y} ${z},`
-        //     }
-        // }
-        // this.data.path = newString
-        // pathArray = this.data.path.split(',')
-        // let lineWidth = `1 - Math.abs(${performance.now() * 2 % 5} * p - 1)`
-        // let lineWidth = 10
-        // document.querySelector('#beep').setAttribute('meshline', `lineWidth: 10; path: ${newString}; color: #E20049`)
-
         this.totalPoints++
     },
     tick: function (t, dt) {
