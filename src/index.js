@@ -4,8 +4,13 @@ require('aframe-curve-component')
 // TODO: When next version of super-hands gets published this can be updated
 // (as of today, April 6, 2018, the npm version is 5 months out of date, so I'm using a script to the git version)
 require('./super-hands-local/super-hands.min.js');
+Tone = require('tone');
 
 const TWO_PI = Math.PI * 2
+
+let params = new URLSearchParams(document.location.search.substring(1));
+let isInstallationComputer = params.get("installation-computer") != null; // is the string "Jonathan"
+console.log("isInstallationComputer?", isInstallationComputer)
 
 AFRAME.registerComponent('add-stations', {
     schema: {
@@ -143,26 +148,34 @@ AFRAME.registerComponent('head-path', {
         }
         currentMeshline.path += direction.toArray().join(" ")
 
+
+        // console.log("inited?", window.user, " | ", performance.now() / 1000, Math.floor(performance.now() / 1000) % 1 === 0)
+        // Throttle to every 10 times, just keep a this.addTo variable or work off of this.totalPoints % this.data.maxPoints???
+
+        // Hmmmm,
+        //
+        //URLSearchParams.get(name)
+
+        // if (window.db) {
+        //     console.log("uhhhh points?", window.db.ref("points").val)
+        //     window.db.ref("points").once('value').then(function(snapshot) {
+        //         console.log("boop")
+        //         window.db.ref("points").set(snapshot.val() + currentMeshline.path);
+        //     });
+        // }
+
         currentMeshline.element.setAttribute('meshline', `lineWidth: ${this.data.linewidth}; path: ${currentMeshline.path}; color: #E20049`)
 
-        console.log('t', this.totalPoints)
+        // console.log('t', this.totalPoints)
         if (this.totalPoints > this.data.maxPoints) {
             let lastMeshline = this.meshlines[this.meshlineIndex - 1]
             if (!lastMeshline) {
                 lastMeshline = {element: '', path: ''}
             }
 
-            console.log("last path? :", lastMeshline.path.split(','))
-            console.log("last one? :", lastMeshline.path.split(',')[lastMeshline.path.split(',').length - 1])
-
-            // let newEntity = makeNewMeshline(this.meshlineIndex + 1, this.data.linewidth, lastMeshlineArray[lastMeshlineArray.length - 1])
-            const lastIndex = lastMeshline.path.length === 0 ? 0 : lastMeshline.path.length - 1
             let lastElement = lastMeshline.path.split(',')[lastMeshline.path.split(',').length - 1]
-            console.log("lastElement ", lastElement)
             if (!lastElement && this.meshlineIndex === 0) {
                 lastElement = ''
-            } else {
-                console.log(" UHHHHH")
             }
 
             let newEntity = makeNewMeshline(this.meshlineIndex + 1, this.data.linewidth, lastElement)
@@ -253,24 +266,21 @@ AFRAME.registerComponent('model-opacity', {
 
 AFRAME.registerComponent('fade-out', {
     schema: {
-        totalDelay: { default : 10 },
+        totalDelay: { default : 180 },
         numberFadeSeconds: { default : 20 },
         isModel: { default : false },
-        isSky: { default : false }
+        isSky: { default : false },
+        timeEl: { type:  'selector', default: '#time-marker'}
     },
     init: function () {
-        // console.log('FADDDDingggg', this.el)
-        // this.el.setAttribute('model-opacity', 0)
-    },
-    easeInOutQuad: function (t) {
-        return t<.5 ? 2*t*t : -1+(4-2*t)*t;
+        console.log("tim", this.data.timeEl)
     },
     tick: function (t) {
+        // let t = performance.now()
         t /= 1000
+        this.data.timeEl.innerHTML = Math.floor(t)
         if (t > this.data.totalDelay && t < (this.data.totalDelay + this.data.numberFadeSeconds)) {
-            // console.log(`t: ${t}`)
-
-            let animValue = this.easeInOutQuad(t / this.data.numberFadeSeconds)
+            let animValue = 1 - ( t / this.data.numberFadeSeconds )
             if (this.data.isModel) {
                 this.el.setAttribute('model-opacity', animValue)
             } else if (this.data.isSky) {
@@ -278,6 +288,83 @@ AFRAME.registerComponent('fade-out', {
             } else {
                 this.el.setAttribute('material', 'opacity', animValue)
             }
+        } else if (t > (this.data.totalDelay + this.data.numberFadeSeconds)) {
+            if (this.data.isModel) {
+                this.el.setAttribute('model-opacity', 0)
+            } else if (this.data.isSky) {
+                this.el.object3D.children[0].material.color = {r: 0, g:0, b: 0}
+            } else {
+                this.el.setAttribute('material', 'opacity', 0)
+            }
         }
     }
 })
+
+AFRAME.registerComponent('add-sound', {
+    init: function() {
+        let synth = new Tone.Synth().toMaster();
+        //play a middle 'C' for the duration of an 8th note
+        let player = new Tone.Player("./assets/sounds/raw.wav").toMaster();
+        //play as soon as the buffer is loaded
+        player.autostart = true;
+        player.loop = true;
+        this.player = player
+        // Modulate playback rate with velocity??
+        this.lastPos = new THREE.Vector3(0,0,0)
+        this.currentPos = new THREE.Vector3(0,0,0)
+    },
+    tick: function(t) {
+        // Same algorithm as calculating the point!
+        let quat = document.querySelector('[camera]').object3D.children[0].getWorldQuaternion()
+        var direction = new THREE.Vector3( 0, 0, -10 ).applyQuaternion(quat); // this works, but why the Y-component???
+        direction = this.currentPos.clone().add(direction)
+
+        // goes 100 - 99, so scale that down 0-1 :)
+        //
+        // Then, save points to a database & websocket themmmmm!
+        //
+        const newPlaybackRate = ( ((this.currentPos.distanceToSquared(this.lastPos)) / 100) * 10 ) % 1
+        // console.log( newPlaybackRate)
+        this.player.playbackRate = newPlaybackRate
+
+        this.lastPos = this.currentPos.clone()
+        this.currentPos = direction
+    }
+})
+
+var inited = false;
+var user;
+
+function firebaseStuff() {
+    var db = app.database();
+    window.db = db
+    console.log("DB:", db)
+    // db.ref("testing").set("Andres Cuervo");
+}
+
+// Initialize Firebase
+var config = {
+    apiKey: "AIzaSyARkBLd2J9e-yiTEvC55i1Y89M_rneRnCg",
+    authDomain: "jsconf-eu-2018.firebaseapp.com",
+    databaseURL: "https://jsconf-eu-2018.firebaseio.com",
+    projectId: "jsconf-eu-2018",
+    storageBucket: "jsconf-eu-2018.appspot.com",
+    messagingSenderId: "471578209249"
+};
+app = firebase.initializeApp(config);
+
+app.auth().onAuthStateChanged(function(user) {
+    if (user) {
+        // User is signed in.
+        window.user = user;
+        console.log("User:", user.uid);
+        if (!inited) {
+            inited = true;
+            firebaseStuff();
+        }
+    } else {
+        app.auth().signInAnonymously().catch(function(error) {
+            console.log(error);
+        });
+    }
+});
