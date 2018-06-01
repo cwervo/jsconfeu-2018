@@ -71,7 +71,7 @@ AFRAME.registerComponent('add-stations', {
         //     // console.log(`${i}: ${x}, ${y}`)
         //     station.setAttribute('position', `${x} ${y} ${z}`)
         // }
-        this.data.stationHolder.setAttribute('rotation', `0 0 ${performance.now() * 0.01}`)
+        this.data.stationHolder.setAttribute('rotation', `0 0 ${performance.now() * 0.005}`)
     }
 })
 //color randomizer
@@ -253,7 +253,7 @@ AFRAME.registerComponent('model-opacity', {
 
 AFRAME.registerComponent('fade-out', {
     schema: {
-        totalDelay: { default : 180 },
+        totalDelay: { default : 10 },
         numberFadeSeconds: { default : 20 },
         isModel: { default : false },
         isSky: { default : false }
