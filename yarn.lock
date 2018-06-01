@@ -62,6 +62,10 @@ aframe-meshline-component@^0.2.1:
   version "0.2.1"
   resolved "https://registry.yarnpkg.com/aframe-meshline-component/-/aframe-meshline-component-0.2.1.tgz#53050233fd887c50be5f999097a16f5ba888cab3"
 
+aframe-orbit-controls-component-2@^0.1.14:
+  version "0.1.14"
+  resolved "https://registry.yarnpkg.com/aframe-orbit-controls-component-2/-/aframe-orbit-controls-component-2-0.1.14.tgz#bcc7dabbb8f88e782675bc8571883751e109d518"
+
 aframe-particle-system-component@^1.0.11:
   version "1.0.11"
   resolved "https://registry.yarnpkg.com/aframe-particle-system-component/-/aframe-particle-system-component-1.0.11.tgz#ac1f3abef2307b238df58c9358982c987fb10016"

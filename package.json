@@ -8,6 +8,7 @@
     "aframe-extras.ocean": "^4.0.0",
     "aframe-gradient-sky": "^1.0.4",
     "aframe-meshline-component": "^0.2.1",
+    "aframe-orbit-controls-component-2": "^0.1.14",
     "aframe-particle-system-component": "^1.0.11",
     "aframe-physics-extras": "^0.1.2",
     "aframe-physics-system": "^3.0.2",

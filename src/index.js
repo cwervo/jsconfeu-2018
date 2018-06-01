@@ -4,6 +4,7 @@ require('aframe-curve-component')
 // TODO: When next version of super-hands gets published this can be updated
 // (as of today, April 6, 2018, the npm version is 5 months out of date, so I'm using a script to the git version)
 require('./super-hands-local/super-hands.min.js');
+require('aframe-orbit-controls-component-2');
 Tone = require('tone');
 
 const TWO_PI = Math.PI * 2
@@ -23,6 +24,10 @@ AFRAME.registerComponent('add-stations', {
         let stationHolder = document.createElement('a-entity')
         stationHolder.setAttribute('position', '0 -2 -2.5')
         this.data.stationHolder = stationHolder
+
+        // if (!isInstallationComputer) {
+        //     document.querySelector('[camera]').setAttribute('orbit-controls',  "enableZoom:false; autoRotate: true; target: #holder; enableDamping: true; dampingFactor: 0.125; autoRotateSpeed:0.5; minDistance:3; maxDistance:100; minPolarAngle: 1.57079632679; maxPolarAngle: 1.57079632679;" )
+        // }
 
         for (let i = 1; i <= this.data.numStations; ++i) {
             let plane = document.createElement('a-plane')
@@ -115,20 +120,27 @@ AFRAME.registerComponent('head-path', {
     schema : {
         path : { default : '' },
         linewidth: { default : 15 },
-        maxPoints: { default : 300 }
+        maxPoints: { default : 300  }
     },
     meshlines: [],
     meshlineIndex: 0,
     totalPoints: 0,
     init: function() {
-        let newEntity = makeNewMeshline(0, this.data.linewidth, this.data.path)
-        console.log("ADDED ----")
-        this.meshlines.push({
-            element: newEntity,
-            path: ''
-        })
-        this.el.appendChild(newEntity)
-        this.throttledFunction = AFRAME.utils.throttle(this.addPoints, 100, this);
+        if (isInstallationComputer) {
+            let newEntity = makeNewMeshline(0, this.data.linewidth, this.data.path)
+            console.log("ADDED ----")
+            this.meshlines.push({
+                element: newEntity,
+                path: ''
+            })
+            this.el.appendChild(newEntity)
+            this.throttledFunction = AFRAME.utils.throttle(this.addPoints, 100, this);
+        } else {
+            // Here set path, start update listener for changesssss
+            window.db.ref("points").on("value", function(snapshot) {
+                console.log("value changed: ", snapshot.val());
+            });
+        }
     },
     zVector: {
         beep: new THREE.Vector3( 0, 1, 0 )
@@ -152,17 +164,18 @@ AFRAME.registerComponent('head-path', {
         // console.log("inited?", window.user, " | ", performance.now() / 1000, Math.floor(performance.now() / 1000) % 1 === 0)
         // Throttle to every 10 times, just keep a this.addTo variable or work off of this.totalPoints % this.data.maxPoints???
 
-        // Hmmmm,
-        //
-        //URLSearchParams.get(name)
-
-        // if (window.db) {
-        //     console.log("uhhhh points?", window.db.ref("points").val)
-        //     window.db.ref("points").once('value').then(function(snapshot) {
-        //         console.log("boop")
-        //         window.db.ref("points").set(snapshot.val() + currentMeshline.path);
-        //     });
-        // }
+        if (window.db && isInstallationComputer) {
+            window.db.ref("points").once('value').then(function(snapshot) {
+                let lastVal = snapshot.val()
+                if (!snapshot.exists()) {
+                    lastVal = ''
+                } else {
+                    lastVal += ','
+                }
+                // Append points to DB
+                window.db.ref("points").set(lastVal + direction.toArray().join(" "));
+            });
+        }
 
         currentMeshline.element.setAttribute('meshline', `lineWidth: ${this.data.linewidth}; path: ${currentMeshline.path}; color: #E20049`)
 
@@ -179,7 +192,7 @@ AFRAME.registerComponent('head-path', {
             }
 
             let newEntity = makeNewMeshline(this.meshlineIndex + 1, this.data.linewidth, lastElement)
-            console.log("ADDED ---- lastElement:", lastElement)
+            // console.log("ADDED ---- lastElement:", lastElement)
             this.meshlines.push({
                 element: newEntity,
                 path: lastElement
@@ -191,7 +204,9 @@ AFRAME.registerComponent('head-path', {
         this.totalPoints++
     },
     tick: function (t, dt) {
-        this.throttledFunction();
+        if (isInstallationComputer) {
+            this.throttledFunction();
+        }
     }
 });
 
@@ -246,22 +261,22 @@ AFRAME.registerComponent('bioluminescence', {
 
 // From: https://gist.github.com/Strae/8b62ee637699b4218b53b3f158351864
 AFRAME.registerComponent('model-opacity', {
-  schema: {default: 1.0},
-  init: function () {
-    this.el.addEventListener('model-loaded', this.update.bind(this));
-  },
-  update: function () {
-    var mesh = this.el.getObject3D('mesh');
-    var data = this.data;
-    if (!mesh) { return; }
-    mesh.traverse(function (node) {
-      if (node.isMesh) {
-        node.material.opacity = data;
-        node.material.transparent = data < 1.0;
-        node.material.needsUpdate = true;
-      }
-    });
-  }
+    schema: {default: 1.0},
+    init: function () {
+        this.el.addEventListener('model-loaded', this.update.bind(this));
+    },
+    update: function () {
+        var mesh = this.el.getObject3D('mesh');
+        var data = this.data;
+        if (!mesh) { return; }
+        mesh.traverse(function (node) {
+            if (node.isMesh) {
+                node.material.opacity = data;
+                node.material.transparent = data < 1.0;
+                node.material.needsUpdate = true;
+            }
+        });
+    }
 });
 
 AFRAME.registerComponent('fade-out', {
