@@ -126,26 +126,14 @@ AFRAME.registerComponent('head-path', {
     meshlineIndex: 0,
     totalPoints: 0,
     init: function() {
-        if (isInstallationComputer) {
-            let newEntity = makeNewMeshline(0, this.data.linewidth, this.data.path)
-            console.log("ADDED ----")
-            this.meshlines.push({
-                element: newEntity,
-                path: ''
-            })
-            this.el.appendChild(newEntity)
-            this.throttledFunction = AFRAME.utils.throttle(this.addPoints, 100, this);
-        } else {
-            // Here set path, start update listener for changesssss
-            if (window.db) {
-                window.db.ref("points").on("value", function(snapshot) {
-                    console.log("value changed: ", snapshot.val());
-                });
-            }
-        }
-    },
-    zVector: {
-        beep: new THREE.Vector3( 0, 1, 0 )
+        let newEntity = makeNewMeshline(0, this.data.linewidth, this.data.path)
+        console.log("ADDED ----")
+        this.meshlines.push({
+            element: newEntity,
+            path: ''
+        })
+        this.el.appendChild(newEntity)
+        this.throttledFunction = AFRAME.utils.throttle(this.addPoints, 100, this);
     },
     addPoints: function() {
         // TODO: To solve the n^2 points problem, if we're above X number of points, make a new object, put it in a list, and update that object
@@ -205,9 +193,23 @@ AFRAME.registerComponent('head-path', {
         }
         this.totalPoints++
     },
+    initedSpectator: false,
     tick: function (t, dt) {
         if (isInstallationComputer) {
             this.throttledFunction();
+        } else {
+            // Here set path, start update listener for changesssss
+            // console.log("aaa db? ", window.db)
+            // console.log("aaa db? ", window.user)
+            if (window.db && !this.initedSpectator) {
+                this.initedSpectator = true
+                this.meshlines = document.querySelector('[head-path]').components['head-path'].meshlines
+                window.db.ref("points").on("value", function(snapshot) {
+                    console.log("aaa value changed: ", snapshot.val());
+                    console.log("aaa meshlines?", )
+                    this.el.getChildren()[0].setAttribute('meshline', `lineWidth: ${this.data.linewidth}; path: ${snapshot.val()}; color: #E20049`)
+                }.bind(this));
+            }
         }
     }
 });
