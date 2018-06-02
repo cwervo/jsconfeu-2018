@@ -137,9 +137,11 @@ AFRAME.registerComponent('head-path', {
             this.throttledFunction = AFRAME.utils.throttle(this.addPoints, 100, this);
         } else {
             // Here set path, start update listener for changesssss
-            window.db.ref("points").on("value", function(snapshot) {
-                console.log("value changed: ", snapshot.val());
-            });
+            if (window.db) {
+                window.db.ref("points").on("value", function(snapshot) {
+                    console.log("value changed: ", snapshot.val());
+                });
+            }
         }
     },
     zVector: {
@@ -152,7 +154,7 @@ AFRAME.registerComponent('head-path', {
 
         const currentMeshline = this.meshlines[this.meshlineIndex]
 
-        let quat = document.querySelector('[camera]').object3D.children[0].getWorldQuaternion()
+        let quat = document.querySelector('[camera]').object3D.getWorldQuaternion()
         var direction = new THREE.Vector3( 0, 0, -10 ).applyQuaternion(quat); // this works, but why the Y-component???
         direction = pos.add(direction)
         if (currentMeshline.path !== '') {
@@ -330,7 +332,7 @@ AFRAME.registerComponent('add-sound', {
     },
     tick: function(t) {
         // Same algorithm as calculating the point!
-        let quat = document.querySelector('[camera]').object3D.children[0].getWorldQuaternion()
+        let quat = document.querySelector('[camera]').object3D.getWorldQuaternion()
         var direction = new THREE.Vector3( 0, 0, -10 ).applyQuaternion(quat); // this works, but why the Y-component???
         direction = this.currentPos.clone().add(direction)
 
