@@ -205,8 +205,8 @@ AFRAME.registerComponent('head-path', {
                 this.initedSpectator = true
                 this.meshlines = document.querySelector('[head-path]').components['head-path'].meshlines
                 window.db.ref("points").on("value", function(snapshot) {
-                    console.log("aaa value changed: ", snapshot.val());
-                    console.log("aaa meshlines?", )
+                    // console.log("aaa value changed: ", snapshot.val());
+                    // console.log("aaa meshlines?", )
                     this.el.getChildren()[0].setAttribute('meshline', `lineWidth: ${this.data.linewidth}; path: ${snapshot.val()}; color: #E20049`)
                 }.bind(this));
             }
@@ -289,31 +289,62 @@ AFRAME.registerComponent('fade-out', {
         numberFadeSeconds: { default : 20 },
         isModel: { default : false },
         isSky: { default : false },
-        timeEl: { type:  'selector', default: '#time-marker'}
+        nonInstallationComputerColor: { default: 0 },
+        buttonStyle : { default : "z-index: 1; position: absolute; top: 0; font-family: monospace; color: white; background-color: black; font-size: 2em; padding: 0.25em;" }
     },
     init: function () {
-        console.log("tim", this.data.timeEl)
+        // console.log("tim", this.data.timeEl)
+        if (isInstallationComputer) {
+            let timeEl = document.createElement('div')
+            timeEl.style = this.data.buttonStyle
+            document.body.appendChild(timeEl)
+            this.timeEl = timeEl
+        } else {
+            let toggleColorButton = document.createElement('button')
+            toggleColorButton.innerHTML = "Click me to toggle the color!"
+            toggleColorButton.style = this.data.buttonStyle + "outline: white; border-radius: 4px; font-size: 1.5em;"
+
+            toggleColorButton.onclick = () => {
+                let fadeOutComponent = document.querySelector('[fade-out]')
+                let currentTime = fadeOutComponent.components['fade-out'].data.nonInstallationComputerColor
+                fadeOutComponent.components['fade-out'].data.nonInstallationComputerColor = currentTime === 0 ? 1000 : 0
+                // console.log("curret", fadeOutComponent.components['fade-out'].data.nonInstallationComputerColor)
+            }
+
+            document.body.appendChild(toggleColorButton)
+            // this.toggleColorButton = toggleColorButton
+        }
     },
     tick: function (t) {
-        // let t = performance.now()
-        t /= 1000
-        this.data.timeEl.innerHTML = Math.floor(t)
-        if (t > this.data.totalDelay && t < (this.data.totalDelay + this.data.numberFadeSeconds)) {
-            let animValue = 1 - ( t / this.data.numberFadeSeconds )
-            if (this.data.isModel) {
-                this.el.setAttribute('model-opacity', animValue)
-            } else if (this.data.isSky) {
-                this.el.object3D.children[0].material.color = {r:  animValue, g:  animValue, b:  animValue}
-            } else {
-                this.el.setAttribute('material', 'opacity', animValue)
+        if (isInstallationComputer) {
+            // let t = performance.now()
+            t /= 1000
+            this.timeEl.innerHTML = Math.floor(t)
+            if (t > this.data.totalDelay && t < (this.data.totalDelay + this.data.numberFadeSeconds)) {
+                let animValue = 1 - ( t / this.data.numberFadeSeconds )
+                if (this.data.isModel) {
+                    this.el.setAttribute('model-opacity', animValue)
+                } else if (this.data.isSky) {
+                    this.el.object3D.children[0].material.color = {r:  animValue, g:  animValue, b:  animValue}
+                } else {
+                    this.el.setAttribute('material', 'opacity', animValue)
+                }
+            } else if (t > (this.data.totalDelay + this.data.numberFadeSeconds)) {
+                if (this.data.isModel) {
+                    this.el.setAttribute('model-opacity', 0)
+                } else if (this.data.isSky) {
+                    this.el.object3D.children[0].material.color = {r: 0, g:0, b: 0}
+                } else {
+                    this.el.setAttribute('material', 'opacity', 0)
+                }
             }
-        } else if (t > (this.data.totalDelay + this.data.numberFadeSeconds)) {
+        } else {
             if (this.data.isModel) {
-                this.el.setAttribute('model-opacity', 0)
+                this.el.setAttribute('model-opacity', this.data.nonInstallationComputerColor)
             } else if (this.data.isSky) {
-                this.el.object3D.children[0].material.color = {r: 0, g:0, b: 0}
+                this.el.object3D.children[0].material.color = {r: this.data.nonInstallationComputerColor, g: this.data.nonInstallationComputerColor, b: this.data.nonInstallationComputerColor}
             } else {
-                this.el.setAttribute('material', 'opacity', 0)
+                this.el.setAttribute('material', 'opacity', this.data.nonInstallationComputerColor)
             }
         }
     }
