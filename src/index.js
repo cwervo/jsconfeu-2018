@@ -7,10 +7,16 @@ require('./super-hands-local/super-hands.min.js');
 require('aframe-orbit-controls-component-2');
 Tone = require('tone');
 const TWO_PI = Math.PI * 2
+const INSTALLATION_LIVE = false
 
 let params = new URLSearchParams(document.location.search.substring(1));
 let isInstallationComputer = params.get("installation-computer") != null; // is the string "Jonathan"
+
 console.log("isInstallationComputer?", isInstallationComputer)
+if (!INSTALLATION_LIVE) {
+    // isInstallationComputer = false
+}
+
 
 AFRAME.registerComponent('add-stations', {
     schema: {
@@ -165,6 +171,7 @@ AFRAME.registerComponent('head-path', {
 
 
         if (window.db && isInstallationComputer) {
+            console.log("adding pointsss")
             window.db.ref("points").once('value').then(function(snapshot) {
                 let lastVal = snapshot.val()
                 if (!snapshot.exists()) {
@@ -314,65 +321,72 @@ AFRAME.registerComponent('fade-out', {
 
 AFRAME.registerComponent('add-sound', {
     init: function() {
-        let synth = new Tone.Synth().toMaster();
-        //play a middle 'C' for the duration of an 8th note
-        let player = new Tone.Player("./assets/sounds/raw.wav").toMaster();
-        //play as soon as the buffer is loaded
-        player.autostart = true;
-        player.loop = true;
-        this.player = player
-        // Modulate playback rate with velocity??
-        this.lastPos = new THREE.Vector3(0,0,0)
-        this.currentPos = new THREE.Vector3(0,0,0)
+        if (isInstallationComputer) {
+            let synth = new Tone.Synth().toMaster();
+            //play a middle 'C' for the duration of an 8th note
+            let player = new Tone.Player("./assets/sounds/raw.wav").toMaster();
+            //play as soon as the buffer is loaded
+            player.autostart = true;
+            player.loop = true;
+            this.player = player
+            // Modulate playback rate with velocity??
+            this.lastPos = new THREE.Vector3(0,0,0)
+            this.currentPos = new THREE.Vector3(0,0,0)
+        } else {
+        }
     },
     tick: function(t) {
-        // Same algorithm as calculating the point!
-        let quat = document.querySelector('[camera]').object3D.getWorldQuaternion()
-        var direction = new THREE.Vector3( 0, 0, -10 ).applyQuaternion(quat); // this works, but why the Y-component???
-        direction = this.currentPos.clone().add(direction)
+        if (isInstallationComputer) {
+            // Same algorithm as calculating the point!
+            let quat = document.querySelector('[camera]').object3D.getWorldQuaternion()
+            var direction = new THREE.Vector3( 0, 0, -10 ).applyQuaternion(quat); // this works, but why the Y-component???
+            direction = this.currentPos.clone().add(direction)
 
-        // goes 100 - 99, so scale that down 0-1 :)
-        const newPlaybackRate = ( ((this.currentPos.distanceToSquared(this.lastPos)) / 100) * 10 ) % 1
-        this.player.playbackRate = newPlaybackRate
+            // goes 100 - 99, so scale that down 0-1 :)
+            const newPlaybackRate = ( ((this.currentPos.distanceToSquared(this.lastPos)) / 100) * 10 ) % 1
+            this.player.playbackRate = newPlaybackRate
 
-        this.lastPos = this.currentPos.clone()
-        this.currentPos = direction
+            this.lastPos = this.currentPos.clone()
+            this.currentPos = direction
+        }
     }
 })
 
 var inited = false;
 var user;
 
-function firebaseStuff() {
-    var db = app.database();
-    window.db = db
-    console.log("DB:", db)
-    // db.ref("testing").set("Andres Cuervo");
-}
-
-// Initialize Firebase
-var config = {
-    apiKey: "AIzaSyARkBLd2J9e-yiTEvC55i1Y89M_rneRnCg",
-    authDomain: "jsconf-eu-2018.firebaseapp.com",
-    databaseURL: "https://jsconf-eu-2018.firebaseio.com",
-    projectId: "jsconf-eu-2018",
-    storageBucket: "jsconf-eu-2018.appspot.com",
-    messagingSenderId: "471578209249"
-};
-app = firebase.initializeApp(config);
-
-app.auth().onAuthStateChanged(function(user) {
-    if (user) {
-        // User is signed in.
-        window.user = user;
-        console.log("User:", user.uid);
-        if (!inited) {
-            inited = true;
-            firebaseStuff();
-        }
-    } else {
-        app.auth().signInAnonymously().catch(function(error) {
-            console.log(error);
-        });
+if (INSTALLATION_LIVE) {
+    function firebaseStuff() {
+        var db = app.database();
+        window.db = db
+        console.log("DB:", db)
+        // db.ref("testing").set("Andres Cuervo");
     }
-});
+
+    // Initialize Firebase
+    var config = {
+        apiKey: "AIzaSyARkBLd2J9e-yiTEvC55i1Y89M_rneRnCg",
+        authDomain: "jsconf-eu-2018.firebaseapp.com",
+        databaseURL: "https://jsconf-eu-2018.firebaseio.com",
+        projectId: "jsconf-eu-2018",
+        storageBucket: "jsconf-eu-2018.appspot.com",
+        messagingSenderId: "471578209249"
+    };
+    app = firebase.initializeApp(config);
+
+    app.auth().onAuthStateChanged(function(user) {
+        if (user) {
+            // User is signed in.
+            window.user = user;
+            console.log("User:", user.uid);
+            if (!inited) {
+                inited = true;
+                firebaseStuff();
+            }
+        } else {
+            app.auth().signInAnonymously().catch(function(error) {
+                console.log(error);
+            });
+        }
+    });
+}
