@@ -6,7 +6,6 @@ require('aframe-curve-component')
 require('./super-hands-local/super-hands.min.js');
 require('aframe-orbit-controls-component-2');
 Tone = require('tone');
-
 const TWO_PI = Math.PI * 2
 
 let params = new URLSearchParams(document.location.search.substring(1));
@@ -25,9 +24,23 @@ AFRAME.registerComponent('add-stations', {
         stationHolder.setAttribute('position', '0 -2 -2.5')
         this.data.stationHolder = stationHolder
 
-        // if (!isInstallationComputer) {
-        //     document.querySelector('[camera]').setAttribute('orbit-controls',  "enableZoom:false; autoRotate: true; target: #holder; enableDamping: true; dampingFactor: 0.125; autoRotateSpeed:0.5; minDistance:3; maxDistance:100; minPolarAngle: 1.57079632679; maxPolarAngle: 1.57079632679;" )
-        // }
+        if (!isInstallationComputer) {
+            let cam = document.querySelector('[camera]')
+            cam.setAttribute('orbit-controls',  "enableZoom: true; autoRotate: true; target: #headCurve; enableDamping: true; dampingFactor: 0.125; autoRotateSpeed:0.5; minDistance:3; maxDistance:100; minPolarAngle: 1.57079632679; maxPolarAngle: 1.57079632679;" )
+            // cam.setAttribute('position', '0 2 5')
+
+            // Reuse the networked listener
+            let sculpturePath = require('../assets/archived-jsconfeu-2018-path-data/jsconf-eu-2018-export-JUNE-03-2018.json').points
+
+            let parsedSculpturePath = sculpturePath
+            const s = 0.15
+            document.querySelector('[head-path]').setAttribute('scale', `${s} ${s} ${s}`)
+            document.querySelector('[head-path]').children[0].setAttribute('meshline', `lineWidth: 10; path: ${sculpturePath};`)
+
+            document.querySelector('#yoga-mat').setAttribute('visible', false)
+            document.querySelector('#tube-entity').setAttribute('visible', false)
+        }
+
 
         for (let i = 1; i <= this.data.numStations; ++i) {
             let plane = document.createElement('a-plane')
@@ -151,9 +164,6 @@ AFRAME.registerComponent('head-path', {
         currentMeshline.path += direction.toArray().join(" ")
 
 
-        // console.log("inited?", window.user, " | ", performance.now() / 1000, Math.floor(performance.now() / 1000) % 1 === 0)
-        // Throttle to every 10 times, just keep a this.addTo variable or work off of this.totalPoints % this.data.maxPoints???
-
         if (window.db && isInstallationComputer) {
             window.db.ref("points").once('value').then(function(snapshot) {
                 let lastVal = snapshot.val()
@@ -199,67 +209,19 @@ AFRAME.registerComponent('head-path', {
             this.throttledFunction();
         } else {
             // Here set path, start update listener for changesssss
-            // console.log("aaa db? ", window.db)
-            // console.log("aaa db? ", window.user)
+            //
+            // JUNE 3, 2018: Disable this because installation is over :)
+            //
             if (window.db && !this.initedSpectator) {
                 this.initedSpectator = true
                 this.meshlines = document.querySelector('[head-path]').components['head-path'].meshlines
                 window.db.ref("points").on("value", function(snapshot) {
                     // console.log("aaa value changed: ", snapshot.val());
-                    // console.log("aaa meshlines?", )
-                    this.el.getChildren()[0].setAttribute('meshline', `lineWidth: ${this.data.linewidth}; path: ${snapshot.val()}; color: #E20049`)
+                    console.log("aaa meshlines?", )
+                    this.el.getChildren()[0].setAttribute('meshline', `lineWidth: ${this.data.linewidth}; path: ${snapshot.val()};`)
                 }.bind(this));
             }
         }
-    }
-});
-
-// AFRAME.registerComponent('head-path', {
-//     schema : {
-//         curve: { default: '#headCurve', type: 'selector' },
-//         camera: { default: '[camera]', type: 'selector' },
-//         sample_inc: { default : 0.01 },
-//         scale: { default : 1 }
-//     },
-//     init: function() {
-//         // every second to every half second
-//         this.throttledFunction = AFRAME.utils.throttle(this.everySecond, 1000, this);
-//         // this.throttledFunction = AFRAME.utils.throttle(this.everySecond, 5, this);
-//     },
-//     everySecond: function (t) {
-//         let point = document.createElement('a-curve-point')
-//         let pos = document.querySelector('a-camera').getAttribute('position')
-//         point.setAttribute('position', pos)
-//
-//         // point.setAttribute('geometry', 'primitive:box; height:0.06; width:0.06; depth:0.06')
-//         // point.setAttribute('material', 'shader: displacement-offset;')
-//         // for (let v in document.querySelector('a-draw-curve').object3DMap.mesh.geometry.vertices) {
-//         //     // console.log(v)
-//         // }
-//
-//         // point.setAttribute('bioluminescence', `initialTime: ${t}`)
-//         this.data.curve.appendChild(point)
-//         this.data.beta += this.data.sample_inc
-//     },
-//     tick: function (t, dt) {
-//         this.throttledFunction(t);
-//     }
-// });
-
-AFRAME.registerComponent('bioluminescence', {
-    schema: {
-        initialTime: { default : 0 }
-    },
-    init: function () {
-        // this.data.initialTime = performance.now()
-        // console.log('started at: ', this.data.initialTime)
-        // this.el.setAttribute('geometry', "primitive:box; height:0.06; width:0.06; depth:0.06")
-        // this.el.setAttribute('material', 'color: #2EAFAC;')
-    },
-    tick: function () {
-        // console.log('tick => started at: ', this.data.initialTime)
-        // let s = (this.data.initialTime + performance.now() % 1) + 0.1
-        // this.el.setAttribute('scale', `${s} ${s} ${s}`)
     }
 });
 
@@ -370,11 +332,7 @@ AFRAME.registerComponent('add-sound', {
         direction = this.currentPos.clone().add(direction)
 
         // goes 100 - 99, so scale that down 0-1 :)
-        //
-        // Then, save points to a database & websocket themmmmm!
-        //
         const newPlaybackRate = ( ((this.currentPos.distanceToSquared(this.lastPos)) / 100) * 10 ) % 1
-        // console.log( newPlaybackRate)
         this.player.playbackRate = newPlaybackRate
 
         this.lastPos = this.currentPos.clone()
