@@ -356,11 +356,11 @@ var inited = false;
 var user;
 
 if (INSTALLATION_LIVE) {
+    // NOTE: Will also need to reenable to Firebase script in index.html if you want this to work!
     function firebaseStuff() {
         var db = app.database();
         window.db = db
         console.log("DB:", db)
-        // db.ref("testing").set("Andres Cuervo");
     }
 
     // Initialize Firebase
